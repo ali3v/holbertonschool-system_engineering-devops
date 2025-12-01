@@ -1,0 +1,85 @@
+Diagram
+
+                      +------------------------------------+
+                      |     Load Balancer (HAProxy)        |
+                      |  - SSL termination (HTTPS 443)     |
+                      |  - LB Firewall (FW-1)               |
+                      +------------------------------------+
+                       /                  |                 \
+                      /                   |                  \
+     +---------------------+   +---------------------+   +---------------------+
+     |     Server 1        |   |     Server 2        |   |     Server 3        |
+     |---------------------|   |---------------------|   |---------------------|
+     | Host Firewall (FW-2)|   | Host Firewall (FW-2)|   | Host Firewall (FW-2)|
+     | Nginx (HTTPS from LB)|  | Nginx (HTTPS from LB)|  | Nginx (HTTPS from LB)|
+     | App Server           |  | App Server           |  | App Server           |
+     | App Files (Code)     |  | App Files (Code)     |  | App Files (Code)     |
+     | MySQL (Primary)      |  | MySQL (Replica)      |  | MySQL (Replica)      |
+     | Monitoring Agent     |  | Monitoring Agent     |  | Monitoring Agent     |
+     +---------------------+   +---------------------+   +---------------------+
+
+                    [Network Firewall (FW-3) between internet and LB]
+
+                    [Network Firewall (FW-3) between internet and LB]
+Why each added element
+3 Firewalls
+
+FW-3 (Network Firewall): Filters inbound traffic from the internet, only allows 80/443 to the load balancer, blocks everything else.
+
+FW-1 (LB Firewall): Restricts traffic to the load balancer itself and only forwards to backend servers over allowed ports (e.g., 443/80/8080).
+
+FW-2 (Host Firewalls on each server): Enforces per-host rules (allow only LB-to-Nginx, App-to-DB, block SSH except from admin IPs).
+
+SSL Certificate (HTTPS)
+
+Encrypts traffic to protect user data and prevent tampering or eavesdropping.
+
+Monitoring Clients (x3)
+
+Installed on each server to collect metrics (CPU, memory, disk), logs (Nginx, app, DB), and service health checks, and send them to a centralized monitoring service.
+
+What firewalls are for
+Firewalls enforce security policies by allowing only specific traffic (ports, IPs, protocols) and blocking the rest. They reduce the attack surface and help prevent unauthorized access.
+
+Why traffic is served over HTTPS
+HTTPS encrypts data in transit using TLS, providing confidentiality, integrity, and authentication. It prevents credential theft, man-in-the-middle attacks, and content injection.
+
+What monitoring is used for
+Monitoring provides visibility into system health, performance, and availability. It enables alerting on incidents, capacity planning, and troubleshooting based on metrics and logs.
+
+How monitoring collects data
+Each server runs a monitoring agent that:
+
+Scrapes system metrics from the OS (e.g., using /proc, system APIs).
+
+Parses logs (e.g., Nginx access/error logs, app logs, MySQL logs).
+
+Sends the data to a central monitoring backend (e.g., Sumo Logic, Prometheus + Alertmanager, Datadog, etc.) for dashboards and alerts.
+
+How to monitor Web Server QPS (Queries Per Second)
+Enable access logs in Nginx.
+
+The monitoring agent tails Nginx access logs and counts requests per time window.
+
+Alternatively, expose Nginx status (stub_status or metrics exporter) and scrape the request counters to compute QPS.
+
+Create a dashboard panel showing requests per second and set alerts on thresholds (e.g., sudden spikes).
+
+Issues in this infrastructure
+SSL termination at the Load Balancer
+
+If SSL is terminated at the LB and traffic to backend servers is HTTP, internal traffic is unencrypted, which can be risky on shared or untrusted networks.
+
+Mitigation: Use end-to-end encryption (LB re-encrypts to HTTPS between LB and backends) or private, trusted networks with strict ACLs.
+
+Single writable MySQL (Primary)
+
+Only one node accepts writes—if the Primary fails, writes stop until failover completes.
+
+Mitigation: Automatic failover (orchestrator) and promote a Replica to Primary; consider multi-primary setups (with caution) or managed HA databases.
+
+All servers run all components
+
+Co-locating web, app, and DB on each host can complicate scaling, resource contention, and blast radius during failures.
+
+Mitigation: Separate concerns—dedicated DB nodes, stateless app servers, shared storage or object storage for assets.

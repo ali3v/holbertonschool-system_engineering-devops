@@ -1,0 +1,71 @@
+Diagram
+                      +-------------------------------+
+                      |          Load Balancer         |
+                      |           (HAproxy)            |
+                      +-------------------------------+
+                      /                               \
+        +------------------------------+  +------------------------------+
+        |          Server 1             |  |          Server 2             |
+        |------------------------------|  |------------------------------|
+        | Web Server (Nginx)            |  | Web Server (Nginx)            |
+        | Application Server            |  | Application Server            |
+        | Application Files (Codebase) |  | Application Files (Codebase) |
+        | Database (MySQL - Primary)   |  | Database (MySQL - Replica)   |
+        +------------------------------+  +------------------------------+
+
+
+Why add each element
+Load Balancer: Distributes incoming traffic between servers. Avoids overloading one server.
+
+Two Servers: Provide redundancy and scalability.
+
+Web Server (Nginx): Handles HTTP requests and serves static files.
+
+Application Server: Runs business logic and processes requests.
+
+Application Files: The codebase deployed on both servers.
+
+Database (MySQL): Stores data, replicated for fault tolerance.
+
+Load Balancer Distribution Algorithm
+Use Round Robin algorithm: Requests are distributed one by one in a cyclical manner to each server, balancing load evenly.
+
+This algorithm is simple and effective for similar server capacity.
+
+Active-Active vs Active-Passive Setup
+Active-Active: Both servers handle user traffic simultaneously (like this setup).
+
+Active-Passive: One server is active and serving traffic; the other is standby and only takes over if the active server fails.
+
+Active-Active provides better resource usage and scalability but requires more complex synchronization.
+
+Primary-Replica (Master-Slave) Database Cluster
+The Primary node handles all write operations.
+
+The Replica node asynchronously copies data from the Primary and handles read-only queries.
+
+This improves read scalability and provides fault tolerance.
+
+Primary vs Replica for the Application
+The app writes data to the Primary database.
+
+Reads may be directed to the Replica to distribute load.
+
+The application must be aware of which DB to query for reads vs writes.
+
+Issues with this Infrastructure
+Single Point of Failure (SPOF):
+
+The load balancer is a SPOF unless made redundant.
+
+The Primary database is SPOF for writes without failover.
+
+Security:
+
+No firewall rules defined.
+
+No HTTPS setup for encrypted communication.
+
+Monitoring:
+
+No monitoring tools to check uptime, performance, alerts, etc.

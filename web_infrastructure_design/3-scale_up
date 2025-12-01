@@ -1,0 +1,65 @@
+Diagram
+
+                          +-------------------------------+
+                          |   Load Balancer A (HAProxy)   |
+                          +---------------+---------------+
+                                          |
+                          +---------------v---------------+
+                          |   Load Balancer B (HAProxy)   |
+                          +---------------+---------------+
+                                          |
+                  +-----------------------+-----------------------+
+                  |                                               |
+        +---------------------+                         +---------------------+
+        |   Web Server 1      |                         |   Web Server 2      |
+        |     (Nginx)         |                         |     (Nginx)         |
+        +----------+----------+                         +----------+----------+
+                   |                                                |
+                   |        +---------------------------+           |
+                   +------->|   App Server 1 (Gunicorn) |<----------+
+                   |        +---------------------------+           |
+                   |        +---------------------------+           |
+                   +------->|   App Server 2 (Gunicorn) |<----------+
+                            +---------------------------+
+                                       |
+                                       v
+                            +---------------------------+
+                            |    MySQL Primary Server   |
+                            +---------------------------+
+                            |   MySQL Replica Server    |
+                            +---------------------------+
+
+Why each added element
+Extra Load Balancer (HAProxy B)
+
+Creates an HA (high availability) load-balancer cluster with HAProxy A, removing the load balancer as a single point of failure.
+
+Usually configured with VRRP/Keepalived for a shared virtual IP, or DNS-level failover.
+
+Split Components onto Dedicated Servers
+
+Web Tier (Nginx servers): Efficiently handles HTTP termination, static files, and connection management.
+
+Application Tier (Gunicorn/Uwsgi servers): Runs app code; stateless design allows horizontal scaling.
+
+Database Tier (MySQL Primary/Replica): Separates persistent storage for consistency and allows read scaling via replicas.
+
+Additional Server
+
+Added to scale out one of the tiers (e.g., an extra web or app server) to increase capacity and reduce per-node load.
+
+Benefits
+Scalability: Each layer can scale independently (add more web or app servers).
+
+High Availability: LB cluster avoids SPOF at the entry point; DB replica provides read redundancy and quicker failover.
+
+Performance: Dedicated roles reduce resource contention and improve response times.
+
+Notes
+Load balancers commonly use Round Robin or Least Connections algorithms; choose based on traffic patterns.
+
+Ensure session stickiness if your app requires it, or store session state in a shared backend (Redis).
+
+Secure internal traffic and expose only necessary ports with firewalls.
+
+Use monitoring and alerts for each tier to detect failures and auto-scale if possible.

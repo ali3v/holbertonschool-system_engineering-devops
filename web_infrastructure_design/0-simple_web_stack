@@ -1,0 +1,50 @@
+Diagram ASCII
+
+User
+  |
+  |   (1) Enter www.foobar.com
+  |
+DNS Server
+  |
+  |   (2) Resolve www.foobar.com to IP 8.8.8.8 (A record)
+  |
+Internet
+  |
+  |   (3) HTTP request sent to server at 8.8.8.8
+  |
+Server (IP: 8.8.8.8)
+-------------------------------------------
+|  Web Server (Nginx)                      |  <-- Handles HTTP requests
+|                                         |
+|  Application Server                     |  <-- Runs app code, processes logic
+|                                         |
+|  Application Files (Code Base)          |
+|                                         |
+|  Database (MySQL)                       |  <-- Stores data
+-------------------------------------------
+  |
+  |   (4) Response sent back to user
+  |
+User Browser (displays site)
+
+Explanation
+What is a server?
+A server is a powerful computer that provides services, such as hosting websites and databases, to other computers over a network.
+
+Role of the domain name
+The domain name foobar.com is a human-friendly address that users enter instead of an IP address. It helps locate the server hosting the website.
+
+DNS Record Type A
+The www subdomain is an A record in DNS, which maps a domain name to an IP address—in this case, 8.8.8.8, the address of the server.
+
+Role of the web server (Nginx)
+The web server listens for HTTP requests and serves static content like images or HTML files. It also forwards requests for dynamic content to the application server.
+
+Role of the application server
+The application server runs the website’s backend code, processes business logic, communicates with the database, and generates dynamic content.
+
+Role of the database (MySQL)
+The database stores website data like user information, posts, and other structured information necessary for the application.
+
+Communication Protocol
+Servers and user browsers communicate using the HTTP protocol, which defines how requests and responses are exchanged.
